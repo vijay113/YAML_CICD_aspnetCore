@@ -1,0 +1,45 @@
+pool:
+  vmImage: 'vs2017-win2016'
+
+variables: 
+  solution: '/*/*.sln'  
+  buildPlatform: 'Any CPU'
+  BuildConfiguration: 'Release' 
+
+steps:
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'    
+
+- task: DotNetCoreCLI@2
+  displayName: Build Project_Name using ASP.Net Core
+  inputs:
+    command: 'build' 
+    projects: |
+     **/Project1.csproj
+     **/Project2.csproj       
+    solution: '$(solution)'    
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+      
+- task: DotNetCoreCLI@2
+  displayName: Publish packages
+  inputs:
+    command: 'publish'
+    projects: |
+     **/Project1.csproj
+     **/Project2.csproj
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    publishWebProjects: false
+    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'publish artifacts' 
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'ProjectArtifactFolder'
